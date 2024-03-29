@@ -8,3 +8,8 @@ lm_cache/
 *_private
 *_debug.*
 *.code-workspace
+*.log
+output_*
+fingpt/
+None/
+**/BARTScore

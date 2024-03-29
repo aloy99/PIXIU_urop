@@ -13,7 +13,7 @@ do
     python3 src/eval.py \
         --model hf-causal-vllm \
         --tasks $TASK \
-        --model_args use_accelerate=True,pretrained=./fingpt,tokenizer=./fingpt,use_fast=False \
+        --model_args use_accelerate=True,pretrained=chancefocus/finma-7b-full,tokenizer=chancefocus/finma-7b-full,use_fast=False \
         --no_cache \
         --batch_size 8 \
         --num_fewshot 0  >> output_"$now".log
