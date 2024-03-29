@@ -4,7 +4,7 @@ FLARE
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, bleu, chrf, ter
 import numpy as np
-from .utils import process_text
+from .utils import process_text, process_text_fingpt
 from .zhutils import process_zhtext
 from seqeval.metrics import f1_score as entity_score
 from sklearn.metrics import f1_score, matthews_corrcoef, mean_squared_error
@@ -13,6 +13,7 @@ import evaluate
 import re
 from factscore_package.factscorer import FactScorer
 import os
+import random
 #from comet import download_model, load_from_checkpoint
 
 _CITATION = """
@@ -26,6 +27,7 @@ _CITATION = """
 }
 """
 
+random.seed(42)
 
 class Classification(Task):
     CALCULATE_MCC = True
@@ -1391,3 +1393,67 @@ class ZHFinQAE(QA):
 
 class ZHConvFinQA(ConvFinQA):
     DATASET_PATH = "ChanceFocus/flare-zh-convfinqa"
+
+class FPBFinGPT(FPB):
+
+    def doc_to_text(self, doc):
+        original_instruction = "Analyze the sentiment of this statement extracted from a financial news article. Provide your answer as either negative, positive, or neutral."
+        fingpt_instruction = "Instruction: What is the sentiment of this news? Please choose an answer from {negative/neutral/positive}."
+        query = doc["query"]
+        return query.replace(original_instruction, fingpt_instruction).replace("Text: ", "Input: ")
+
+class FIQASAFinGPT(FIQASA):
+
+    def doc_to_text(self, doc):
+        original_instruction = "What is the sentiment of the following financial post: Positive, Negative, or Neutral?"
+        fingpt_instruction = "Instruction: What is the sentiment of this news? Please choose an answer from {negative/neutral/positive}."
+        query = doc["query"]
+        return query.replace(original_instruction, fingpt_instruction).replace("Text: ", "Input: ")
+
+class HeadlinesFinGPT(Headlines):
+
+    def doc_to_text(self, doc):
+        templates = ["Consider the news headline - does it concern {}?",
+            "Examine the news headline and decide if it includes {}.",
+            "Let me know if the news headline talks about {}.",
+            "Please determine if the news headline addresses {}.",
+            "In the context of the news headline, is {} discussed?",
+            "Interpret the news headline to see if it mentions {}.",
+            "Is the news headline related to {}?",
+            "Analyze the news headline for any mention of {}.",
+            "Assess if the news headline touches on {}.",
+            "Does the news headline talk about {}?",
+            "Review the news headline and determine if it relates to {}.",]
+
+        topic_map = {
+            "PastPrice": "price in the past",
+            "FuturePrice": "price in the future",
+            "PastNews": "a general event (apart from prices) in the past",
+            "FutureNews": "a general event (apart from prices) in the future",
+            "Asset Comparison": "comparing gold with any other asset",
+            "Price or Not": "price",
+            "Direction Up": "price going up",
+            "Direction Down": "price going down",
+            "Direction Constant": "price staying constant",}
+
+        query = doc["query"]
+        query_topic = [v for k,v in topic_map.items() if k in query][0]
+
+        return templates[random.randrange(len(templates))].format(query_topic)
+
+class NERFinGPT(NER):
+
+    def doc_to_text(self, doc):
+        original_instruction = "In the sentences extracted from financial agreements in U.S. SEC filings, identify the named entities that represent a person ('PER'), an organization ('ORG'), or a location ('LOC'). The required answer format is: 'entity name, entity type'"
+        fingpt_instruction = "Instruction: Please extract entities and their types from the input sentence, entity types should be chosen from {person/organization/location}."
+        query = doc["query"]
+        return query.replace(original_instruction, fingpt_instruction).replace("Text: ", "Input: ")
+    
+    def process_results(self, doc, results):
+    
+        text = doc["text"]
+        pred = process_text_fingpt(results[0], text)
+
+        return {"entity_f1": (pred, doc["label"], results[0])}
+    
+

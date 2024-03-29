@@ -7,6 +7,10 @@ import lm_eval.base
 from . import flare
 
 TASK_REGISTRY = {
+    "flare_fpb_fingpt": flare.FPBFinGPT,
+    "flare_fiqasa_fingpt": flare.FIQASAFinGPT,
+    "flare_headlines_fingpt": flare.HeadlinesFinGPT,
+    "flare_ner_fingpt": flare.NERFinGPT,
     "flare_fpb": flare.FPB,
     "flare_fiqasa": flare.FIQASA,
     "flare_ner": flare.NER,
