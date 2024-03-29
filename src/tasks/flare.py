@@ -1430,7 +1430,7 @@ class HeadlinesFinGPT(Headlines):
             "FuturePrice": "price in the future",
             "PastNews": "a general event (apart from prices) in the past",
             "FutureNews": "a general event (apart from prices) in the future",
-            "Asset Comparison": "comparing gold with any other asset",
+            "Asset Comparision": "comparing gold with any other asset",
             "Price or Not": "price",
             "Direction Up": "price going up",
             "Direction Down": "price going down",
