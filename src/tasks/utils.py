@@ -41,9 +41,6 @@ def process_text(entity_string, text):
 
     return labels
 
-[(' Borrower', 'PER'), ('Borrower', 'PER'), ('United States', 'LOC')]
-
-"Bank is an organization, Borrower is a person."
 
 def process_text_fingpt(entity_string, text):
     # Initialize
