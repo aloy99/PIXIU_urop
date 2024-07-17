@@ -4,6 +4,7 @@ FLARE
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, bleu, chrf, ter
 import numpy as np
+from .faireval import fairevalEngine, FPB_PROMPTS, FIQASA_PROMPTS, NER_PROMPTS, HEADLINE_PROMPTS, FINQA_PROMPTS, CONVFINQA_PROMPTS
 from .utils import process_text, process_text_fingpt
 from .zhutils import process_zhtext
 from seqeval.metrics import f1_score as entity_score
@@ -1455,5 +1456,27 @@ class NERFinGPT(NER):
         pred = process_text_fingpt(results[0], text)
 
         return {"entity_f1": (pred, doc["label"], results[0])}
+
+class FairevalMixin:
+    def doc_to_text(self, doc):
+        return self.faireval_engine.doc_to_text(doc)
+    
+class FairevalFPB(FairevalMixin, FPB):
+    faireval_engine = fairevalEngine(FPB_PROMPTS, 0)
+
+class FairevalFIQASA(FairevalMixin, FIQASA):
+    faireval_engine = fairevalEngine(FIQASA_PROMPTS, 1)
+
+class FairevalHeadlines(FairevalMixin, Headlines):
+    faireval_engine = fairevalEngine(HEADLINE_PROMPTS, 1)
+
+class FairevalNER(FairevalMixin, NER):
+    faireval_engine = fairevalEngine(NER_PROMPTS, 0)
+
+class FairevalFinQA(FairevalMixin, FinQA):
+    faireval_engine = fairevalEngine(FINQA_PROMPTS, 0)
+
+
+
     
 
