@@ -1479,14 +1479,14 @@ class FairevalFinQA(FairevalMixin, FinQA):
 class FairevalConvFinQA(FairevalMixin, ConvFinQA):
     faireval_engine = fairevalEngine(CONVFINQA_PROMPTS, 0, "convfinqa")
 
-class FairevalStockMovementBigData(FairevalMixin, StockMovementBigData):
-    fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
+# class FairevalStockMovementBigData(FairevalMixin, StockMovementBigData):
+#     fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
 
-class FairevalStockMovementACL(FairevalMixin, StockMovementACL):
-    fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
+# class FairevalStockMovementACL(FairevalMixin, StockMovementACL):
+#     fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
 
-class FairevalStockMovementCIKM(FairevalMixin, StockMovementCIKM):\
-    fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
+# class FairevalStockMovementCIKM(FairevalMixin, StockMovementCIKM):
+#     fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
 
 
 
