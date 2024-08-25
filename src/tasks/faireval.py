@@ -79,7 +79,7 @@ HEADLINE_PROMPTS = {
         "FutureNews": [
             "a general event (apart from prices) in the future"
         ],
-        "Asset Comparison": [
+        "Asset Comparision": [
             "comparison of gold with any other asset"
         ]
     }
@@ -135,6 +135,7 @@ class fairevalEngine():
                 if k in doc["query"]:
                     replacements[f"category_{category}"] = random.choice(category_mapping[k])
             if f"category_{category}" not in replacements:
+                logger.info(doc["query"])
                 raise ValueError("Invalid prompt format")
             prompt = prompt.format(**replacements)
         if self.task_type == 'sm':

@@ -3,22 +3,20 @@ export PYTHONPATH="$pixiu_path/src:$pixiu_path/src/financial-evaluation:$pixiu_p
 echo $PYTHONPATH
 export CUDA_VISIBLE_DEVICES="0"
 
-declare -a tasks=("faireval_fiqasa")
+declare -a tasks=("faireval_fpb" "flare_fpb")
 
 now="$(date +'%Y-%m-%d-%T')"
 start=$(date +%s)
 
-
-declare -a fewshot_tasks=("faireval_headlines")
-for TASK in "${fewshot_tasks[@]}"
+for TASK in "${tasks[@]}"
 do
     python3 src/eval.py \
         --model hf-causal-vllm \
         --tasks $TASK \
         --model_args use_accelerate=True,pretrained=meta-llama/Llama-2-7b-chat-hf,tokenizer=meta-llama/Llama-2-7b-chat-hf,use_fast=False \
         --no_cache \
-        --batch_size 8 \
-        --num_fewshot 5  >> output_"$now".log
+        --batch_size 128 \
+        --num_fewshot 0  >> output_"$now".log
 done
 
 end=$(date +%s)
