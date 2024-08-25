@@ -1,4 +1,5 @@
 import random
+import re
 import logging
 
 logger = logging.getLogger(__name__)
@@ -119,10 +120,10 @@ SM_PROMPTS = {
 
 class fairevalEngine():
 
-    def __init__(self, prompt_mapping, prompt_categories = 0, clean_text_type = None):
+    def __init__(self, prompt_mapping, prompt_categories = 0, task_type = None):
         self.prompt_mapping = prompt_mapping
         self.prompt_categories = prompt_categories
-        self.clean_text_type = clean_text_type
+        self.task_type = task_type
 
     def randomise_prompt(self, doc):
         prompt = random.choice(self.prompt_mapping["template"])
@@ -136,21 +137,25 @@ class fairevalEngine():
             if f"category_{category}" not in replacements:
                 raise ValueError("Invalid prompt format")
             prompt = prompt.format(**replacements)
+        if self.task_type == 'sm':
+            stock = re.search(r"closing price of (.*?) ", doc['query']).group(1)
+            date = re.search(r"at (.*?)[\?.]", doc['query']).group(1)
+            prompt = prompt.format(stock = stock, date = date)
         return prompt
     
     def clean_text(self, doc):
-        if self.clean_text_type == 'text':
+        if self.task_type == 'text':
             return " Text: " + doc['text']
-        elif self.clean_text_type == 'context':
+        elif self.task_type == 'context':
             return " Context: " +doc['text']
-        elif self.clean_text_type == "headlines":
+        elif self.task_type == "headlines":
             try:
                 text = doc['query'].split("Text: ")[1].replace("Answer:","")
                 return " Text: " + text
             except:
                 logger.info(doc["query"])
                 raise ValueError("Invalid query format")
-        elif self.clean_text_type == "finqa":
+        elif self.task_type == "finqa":
             try:
                 context = doc['query'].split("Context:")[1].split("Question:")[0]
                 question = doc['query'].split("Question:")[1].split("Answer:")[0]
@@ -158,7 +163,7 @@ class fairevalEngine():
             except:
                 logger.info(doc["query"])
                 raise ValueError("Invalid query format")
-        elif self.clean_text_type == "convfinqa":
+        elif self.task_type == "convfinqa":
             try:
                 context = doc['query'].split("Context:")[1].split(" Conversations:")[0]
                 conversations = doc['query'].split("Conversations:")[1].split("Answer:")[0]
@@ -167,8 +172,13 @@ class fairevalEngine():
                 logger.info(doc["query"])
                 raise ValueError("Invalid query format")
             
-        elif self.clean_text_type == "sm":
-            pass
+        elif self.task_type == "sm":
+            try:
+                context = doc['query'].split("Context:")[1].split("Answer:")[0]
+                return " Context: " + context
+            except:
+                logger.info(doc["query"])
+                raise ValueError("Invalid query format")
 
     def doc_to_text(self, doc, answer_phrase = " Answer:"):
         return self.randomise_prompt(doc) + self.clean_text(doc) + answer_phrase
