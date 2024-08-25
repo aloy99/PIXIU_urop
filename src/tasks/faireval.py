@@ -1,4 +1,7 @@
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 FPB_PROMPTS = {
     "template":
@@ -11,7 +14,7 @@ FPB_PROMPTS = {
     ]
 }
 
-FIQASA_PROMPTS = [
+FIQASA_PROMPTS = {
     "template":
     [
         "Analyze the sentiment of this financial {category_0}. Classify your response as Positive, Negative, or Neutral?",
@@ -23,12 +26,12 @@ FIQASA_PROMPTS = [
     0: {
         "post": [
             "post",
-        ]
+        ],
         "headline": [
             "headline"
         ]
     }
-]
+}
 
 NER_PROMPTS = {
     "template":
@@ -130,8 +133,8 @@ class fairevalEngine():
             for k in category_mapping.keys():
                 if k in doc["query"]:
                     replacements[f"category_{category}"] = random.choice(category_mapping[k])
-                else:
-                    raise ValueError("Invalid prompt format")
+            if f"category_{category}" not in replacements:
+                raise ValueError("Invalid prompt format")
             prompt = prompt.format(**replacements)
         return prompt
     
@@ -145,23 +148,27 @@ class fairevalEngine():
                 text = doc['query'].split("Text: ")[1].replace("Answer:","")
                 return " Text: " + text
             except:
+                logger.info(doc["query"])
                 raise ValueError("Invalid query format")
         elif self.clean_text_type == "finqa":
             try:
-                context = doc['query'].split("Context: ")[1].split(" Question:")[0]
-                question = doc['query'].split(" Question: ")[1].split(" Answer: ")[0]
+                context = doc['query'].split("Context:")[1].split("Question:")[0]
+                question = doc['query'].split("Question:")[1].split("Answer:")[0]
                 return " Context: " + context + " Question: " + question
             except:
+                logger.info(doc["query"])
                 raise ValueError("Invalid query format")
         elif self.clean_text_type == "convfinqa":
             try:
-                context = doc['query'].split("Context: ")[1].split(" Conversations:")[0]
-                conversations = doc['query'].split(" Conversations: ")[1].split(" Answer: ")[0]
+                context = doc['query'].split("Context:")[1].split(" Conversations:")[0]
+                conversations = doc['query'].split("Conversations:")[1].split("Answer:")[0]
                 return " Context: " + context + " Conversations: " + conversations
             except:
+                logger.info(doc["query"])
                 raise ValueError("Invalid query format")
             
         elif self.clean_text_type == "sm":
+            pass
 
     def doc_to_text(self, doc, answer_phrase = " Answer:"):
-        return self.randomise_prompt(self.prompt_mapping, doc) + self.clean_text(doc) + answer_phrase
+        return self.randomise_prompt(doc) + self.clean_text(doc) + answer_phrase
