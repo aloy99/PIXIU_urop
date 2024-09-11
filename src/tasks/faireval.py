@@ -6,21 +6,21 @@ logger = logging.getLogger(__name__)
 
 FPB_PROMPTS = {
     "template": [
-        "Evaluate the sentiment conveyed in this excerpt from a financial news report. Classify your response as positive, negative, or neutral.",
-        "Determine the sentiment expressed in this financial journalism snippet. Categorize your assessment as neutral, positive, or negative.",
-        "Interpret the sentiment present in this extract from a piece of business news. Present your conclusion as negative, neutral, or positive.",
-        "Assess the sentiment in this market news excerpt. Indicate your judgment as positive, neutral, or negative.",
-        "Examine the sentiment of this financial news snippet. State your analysis as neutral, negative, or positive.",
+        "Evaluate the sentiment in this excerpt from a financial news report. Classify the sentiment as positive, negative, or neutral.",
+        "Determine the sentiment of this financial journalism snippet. Categorize the sentiment as neutral, positive, or negative.",
+        "Interpret the sentiment in this extract from a piece of financial news. Label the sentiment as negative, neutral, or positive.",
+        "Assess the sentiment in this financial news excerpt. Judge the sentiment as positive, neutral, or negative.",
+        "Examine the sentiment of this financial news snippet. Analyse the sentiment as neutral, negative, or positive."
     ]
 }
 
 FIQASA_PROMPTS = {
     "template": [
-        "Analyze the sentiment of this financial {category_0}. Classify your response as Positive, Negative, or Neutral?",
-        "Evaluate the sentiment conveyed in the given financial {category_0}. Categorize your assessment as Positive, Negative, or Neutral.",
-        "Determine the sentiment expressed in this financial {category_0}. Present your conclusion as Positive, Negative, or Neutral.",
-        "Assess the sentiment of the presented financial {category_0}. Indicate your judgment as Positive, Negative, or Neutral.",
-        "Interpret the sentiment of the following financial {category_0}. State your analysis as Positive, Negative, or Neutral.",
+        "Analyze the sentiment of this financial {category_0}. Classify the sentiment as Positive, Negative, or Neutral.",
+        "Evaluate the sentiment in the given financial {category_0}. Categorize the sentiment as Positive, Negative, or Neutral.",
+        "Determine the sentiment in this financial {category_0}. Label the sentiment as Positive, Negative, or Neutral.",
+        "Assess the sentiment of the presented financial {category_0}. Judge the sentiment as Positive, Negative, or Neutral.",
+        "Interpret the sentiment of the following financial {category_0}. Analyse the sentiment as Positive, Negative, or Neutral."
     ],
     0: {
         "post": [
@@ -32,7 +32,7 @@ FIQASA_PROMPTS = {
 
 NER_PROMPTS = {
     "template": [
-        "For text snippets taken from financial agreements in United States Securities and Exchange Commission documents, detect entities categorized as individuals ('PER'), companies ('ORG'), or places ('LOC'). Present results as: 'entity name, entity type'.",
+        "In the text snippets taken from financial agreements in United States Securities and Exchange Commission documents, detect entities categorized as individuals ('PER'), companies ('ORG'), or places ('LOC'). Present results as: 'entity name, entity type'.",
         "Locate and classify named entities within excerpts from financial agreements found in SEC filings. Identify persons ('PER'), organizations ('ORG'), and locations ('LOC'). Format your response as: 'entity name, entity type'.",
         "Analyze passages from financial contracts submitted to the U.S. SEC. Pinpoint entities that are people ('PER'), institutions ('ORG'), or geographical areas ('LOC'). List findings as: 'entity name, entity type'.",
         "Extract and categorize named entities from financial agreement segments in Securities and Exchange Commission reports. Tag humans ('PER'), groups ('ORG'), and sites ('LOC'). Output should be: 'entity name, entity type'.",
@@ -43,10 +43,10 @@ NER_PROMPTS = {
 HEADLINE_PROMPTS = {
     "template": [
         "Is {category_0} a topic covered in the news headline? Respond with either Yes or No.",
-        "Does the news title address {category_0}? Your answer should be limited to Yes or No.",
+        "Does the news headline address {category_0}? Your answer should be only Yes or No.",
         "Can information about {category_0} be found in the news headline? Reply with Yes or No only.",
         "Evaluate if the news headline contains information about {category_0}. Provide a Yes or No response.",
-        "Determine whether {category_0} is referenced in the news headline. Answer exclusively with Yes or No.",
+        "Determine whether {category_0} is referenced in the news headline. Answer exclusively with Yes or No."
     ],
     0: {
         "Price or Not": ["price"],
@@ -64,10 +64,10 @@ HEADLINE_PROMPTS = {
 FINQA_PROMPTS = {
     "template": [
         "Using the provided context, respond to the presented financial inquiry.",
-        "Address the given financial question, drawing from the provided background information.",
+        "Address the given financial question using the provided context.",
         "Based on the supplied context, offer an answer to the specified financial query.",
-        "Referring to the contextual details provided, tackle the stated financial question.",
-        "Utilize the given context to formulate a response to the posed financial inquiry.",
+        "Referring to the contextual details, tackle the stated financial question.",
+        "Utilize the given context to formulate a response to the posed financial inquiry."
     ]
 }
 
@@ -85,14 +85,14 @@ SM_PROMPTS = {
     "template": [
         "Based on the provided data and tweets, predict whether the closing price of {stock} will increase or decrease at {date}. Answer only with Rise or Fall.",
         "Using the given information and social media posts, forecast if the closing price of {stock} will go up or down at {date}. Respond strictly with Rise or Fall.",
-        "Analyze the supplied data and tweets to determine if the closing price of {stock} will advance or retreat at {date}. Please indicate either Rise or Fall.",
-        "Considering the presented data and tweets, project whether the closing price of {stock} will appreciate or depreciate at {date}. Specify only Rise or Fall.",
-        "Evaluate the given data and tweets to anticipate if the closing price of {stock} will climb or descend at {date}. Your response should be either Rise or Fall.",
+        "Analyze the supplied data and tweets to determine if the closing price of {stock} will go up or down at {date}. Please indicate either Rise or Fall.",
+        "Considering the presented data and tweets, project whether the closing price of {stock} will increase or decrease at {date}. Specify only Rise or Fall.",
+        "Evaluate the given data and tweets to anticipate if the closing price of {stock} will rise or fall at {date}. Your response should be either Rise or Fall.",
     ]
 }
 
 
-class fairevalEngine:
+class FairevalEngine:
 
     def __init__(self, prompt_mapping, prompt_categories=0, task_type=None):
         self.prompt_mapping = prompt_mapping
