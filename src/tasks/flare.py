@@ -4,7 +4,7 @@ FLARE
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, bleu, chrf, ter
 import numpy as np
-from .faireval import fairevalEngine, FPB_PROMPTS, FIQASA_PROMPTS, NER_PROMPTS, HEADLINE_PROMPTS, FINQA_PROMPTS, CONVFINQA_PROMPTS
+from .faireval import FairevalEngine, FPB_PROMPTS, FIQASA_PROMPTS, NER_PROMPTS, HEADLINE_PROMPTS, FINQA_PROMPTS, CONVFINQA_PROMPTS, SM_PROMPTS
 from .utils import process_text, process_text_fingpt
 from .zhutils import process_zhtext
 from seqeval.metrics import f1_score as entity_score
@@ -1462,31 +1462,31 @@ class FairevalMixin:
         return self.faireval_engine.doc_to_text(doc)
     
 class FairevalFPB(FairevalMixin, FPB):
-    faireval_engine = fairevalEngine(FPB_PROMPTS, 0, "text")
+    faireval_engine = FairevalEngine(FPB_PROMPTS, 0, "text")
 
 class FairevalFIQASA(FairevalMixin, FIQASA):
-    faireval_engine = fairevalEngine(FIQASA_PROMPTS, 1, "text")
+    faireval_engine = FairevalEngine(FIQASA_PROMPTS, 1, "text")
 
 class FairevalHeadlines(FairevalMixin, Headlines):
-    faireval_engine = fairevalEngine(HEADLINE_PROMPTS, 1, "headlines")
+    faireval_engine = FairevalEngine(HEADLINE_PROMPTS, 1, "headlines")
 
 class FairevalNER(FairevalMixin, NER):
-    faireval_engine = fairevalEngine(NER_PROMPTS, 0, "text")
+    faireval_engine = FairevalEngine(NER_PROMPTS, 0, "text")
 
 class FairevalFinQA(FairevalMixin, FinQA):
-    faireval_engine = fairevalEngine(FINQA_PROMPTS, 0, "finqa")
+    faireval_engine = FairevalEngine(FINQA_PROMPTS, 0, "finqa")
 
 class FairevalConvFinQA(FairevalMixin, ConvFinQA):
-    faireval_engine = fairevalEngine(CONVFINQA_PROMPTS, 0, "convfinqa")
+    faireval_engine = FairevalEngine(CONVFINQA_PROMPTS, 0, "convfinqa")
 
-# class FairevalStockMovementBigData(FairevalMixin, StockMovementBigData):
-#     fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
+class FairevalStockMovementBigData(FairevalMixin, StockMovementBigData):
+    faireval_engine = FairevalEngine(SM_PROMPTS, 0, "context")
 
-# class FairevalStockMovementACL(FairevalMixin, StockMovementACL):
-#     fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
+class FairevalStockMovementACL(FairevalMixin, StockMovementACL):
+    faireval_engine = FairevalEngine(SM_PROMPTS, 0, "context")
 
-# class FairevalStockMovementCIKM(FairevalMixin, StockMovementCIKM):
-#     fairevalEngine = fairevalEngine(SM_PROMPTS, 0, "context")
+class FairevalStockMovementCIKM(FairevalMixin, StockMovementCIKM):
+    faireval_engine = FairevalEngine(SM_PROMPTS, 0, "context")
 
 
 
