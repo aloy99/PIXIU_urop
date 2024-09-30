@@ -213,14 +213,6 @@ class FairevalEngine:
             prompt = prompt.format(stock=stock, date=date)
         return prompt
 
-    # refactor?
-
-    # function to read prompt category, or stock and date for stock movement task
-
-    # pass kwargs to randomise prompt function, which passes kwargs to prompt.format
-
-    # how do i run the same context for every different prompt permutation? can I use construct_requests
-
     def test_docs(self):
         if self.prompt_mode == "random":
             return super().test_docs()
