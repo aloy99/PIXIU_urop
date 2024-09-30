@@ -13,6 +13,7 @@ from model_prompt import MODEL_PROMPT_MAP
 from chatlm import ChatLM
 import tasks as ta
 
+
 @positional_deprecated
 def simple_evaluate(
     model,
@@ -30,7 +31,8 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out=False,
     output_base_path=None,
-    model_prompt=None
+    model_prompt=None,
+    faireval_repeat_per_prompt=False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -76,7 +78,12 @@ def simple_evaluate(
             model_args = ""
         if model[:3] != "gpt":
             lm = lm_eval.models.get_model(model).create_from_arg_string(
-                model_args, {"batch_size": batch_size, "max_batch_size": max_batch_size, "device": device}
+                model_args,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
             )
         else:
             lm = ChatLM(model)
@@ -109,16 +116,21 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         output_base_path=output_base_path,
-        model_prompt=model_prompt
+        model_prompt=model_prompt,
+        faireval_repeat_per_prompt=faireval_repeat_per_prompt,
     )
 
     # add info about the model and few shot config
     results["config"] = {
-        "model": (model if isinstance(model, str) else model.model.config._name_or_path),
+        "model": (
+            model if isinstance(model, str) else model.model.config._name_or_path
+        ),
         "model_args": model_args,
         "num_fewshot": num_fewshot,
         "batch_size": batch_size,
-        "batch_sizes": list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else [],
+        "batch_sizes": (
+            list(lm.batch_sizes.values()) if hasattr(lm, "batch_sizes") else []
+        ),
         "device": device,
         "no_cache": no_cache,
         "limit": limit,
@@ -144,7 +156,8 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out=False,
     output_base_path=None,
-    model_prompt=None
+    model_prompt=None,
+    faireval_repeat_per_prompt=False,
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -221,6 +234,9 @@ def evaluate(
         else:
             raise RuntimeError("Task has neither test_docs nor validation_docs")
 
+        if faireval_repeat_per_prompt:
+            pass
+
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         task_docs = list(task_doc_func())
         rnd = random.Random()
@@ -240,7 +256,7 @@ def evaluate(
             limit = int(len(task_docs) * limit) if limit < 1.0 else int(limit)
 
         if model_prompt is None:
-            model_prompt = 'no_prompt'
+            model_prompt = "no_prompt"
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
             if decontaminate and task.should_decontaminate():
@@ -254,7 +270,7 @@ def evaluate(
             )
 
             ctx = MODEL_PROMPT_MAP[model_prompt](ctx)
-            
+
             reqs = task.construct_requests(doc, ctx)
 
             if write_out:
@@ -276,16 +292,18 @@ def evaluate(
                 diag_id = doc.get("dialogue_id", doc_id)
                 turn = doc.get("turn", 0)
                 turn_requests[(diag_id, turn)] = (task_name, doc, doc_id, req)
-                requests_origin[req.request_type].append((i, task_name, doc, doc_id, diag_id, turn))
-                
-                #print("req: " + str(req.args))
+                requests_origin[req.request_type].append(
+                    (i, task_name, doc, doc_id, diag_id, turn)
+                )
+
+                # print("req: " + str(req.args))
 
                 if write_out:
                     prompt_details[-1][f"prompt_{i}"] = "".join(
                         (map(lambda x: "".join(x), req.args))
                     )
-            
-            #print("request:" + request[])
+
+            # print("request:" + request[])
         if write_out:
             write_out_info[task_name] = prompt_details
 
@@ -312,25 +330,29 @@ def evaluate(
         print("Running", reqtype, "requests")
         print(f"Maximum {max_turns} turns")
         task_turns = {}
-        for cur_turn in range(max_turns+1):
+        for cur_turn in range(max_turns + 1):
             print(f"Running {cur_turn}th turn")
 
             filtered_reqs = []
 
-            for req, (i, task_name, doc, doc_id, diag_id, turn) in zip(reqs, requests_origin[reqtype]
-):
+            for req, (i, task_name, doc, doc_id, diag_id, turn) in zip(
+                reqs, requests_origin[reqtype]
+            ):
                 if turn != cur_turn:
                     continue
                 task_turns[task_name] = max(turn, task_turns.get(task_name, -1))
                 task = task_dict[task_name]
-                req = task.reformulate_turn_req(req, [(turn_requests.get((diag_id, t), None), t) for
-t in range(turn)], turn)
+                req = task.reformulate_turn_req(
+                    req,
+                    [(turn_requests.get((diag_id, t), None), t) for t in range(turn)],
+                    turn,
+                )
                 filtered_reqs.append([req, (i, task_name, doc, doc_id, diag_id, turn)])
 
             resps = getattr(lm, reqtype)([req.args for req in reqs])
             resps = [
-                x if req[0].index is None else x[req[0].index] for x, req in zip(resps, filtered_reqs
-)
+                x if req[0].index is None else x[req[0].index]
+                for x, req in zip(resps, filtered_reqs)
             ]
 
             for resp, req in zip(resps, filtered_reqs):
@@ -350,7 +372,9 @@ t in range(turn)], turn)
                             doc["answer"]
                         ]
                     else:
-                        write_out_info[task_name][doc_id]["truth"] = task.doc_to_target(doc)
+                        write_out_info[task_name][doc_id]["truth"] = task.doc_to_target(
+                            doc
+                        )
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
@@ -360,9 +384,8 @@ t in range(turn)], turn)
 
         task = task_dict[task_name]
         doc = docs[(task_name, doc_id)]
-        print("doc: "+ str(doc))
-        print("requests: "+ str(requests))
-
+        print("doc: " + str(doc))
+        print("requests: " + str(requests))
 
         metrics = task.process_results(doc, requests)
         for metric, value in metrics.items():
@@ -384,14 +407,18 @@ t in range(turn)], turn)
             real_metric = metric.replace(
                 decontaminate_suffix, ""
             )  # decontaminated still uses the same metric
-        
+
         results[task_name][metric] = task.aggregation()[real_metric](items)
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
 
         stderr = lm_eval.metrics.stderr_for_metric(
             metric=task.aggregation()[real_metric],
-            bootstrap_iters=min(bootstrap_iters, 1000) if metric in ["bleu", "chrf", "ter"] else bootstrap_iters,
+            bootstrap_iters=(
+                min(bootstrap_iters, 1000)
+                if metric in ["bleu", "chrf", "ter"]
+                else bootstrap_iters
+            ),
         )
 
         if stderr is not None:
