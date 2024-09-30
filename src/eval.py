@@ -10,22 +10,35 @@ from model_prompt import MODEL_PROMPT_MAP
 
 logging.getLogger("openai").setLevel(logging.WARNING)
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
     parser.add_argument("--model_args", default="")
-    parser.add_argument("--tasks", default=None, choices=utils.MultiChoice(tasks.ALL_TASKS))
-    parser.add_argument("--model_prompt", default="no_prompt", choices=list(MODEL_PROMPT_MAP.keys()))
+    parser.add_argument(
+        "--tasks", default=None, choices=utils.MultiChoice(tasks.ALL_TASKS)
+    )
+    parser.add_argument(
+        "--model_prompt", default="no_prompt", choices=list(MODEL_PROMPT_MAP.keys())
+    )
     parser.add_argument("--provide_description", action="store_true")
     parser.add_argument("--num_fewshot", type=int, default=0)
     parser.add_argument("--batch_size", type=str, default=None)
-    parser.add_argument("--max_batch_size", type=int, default=None,
-                        help="Maximal batch size to try with --batch_size auto")
+    parser.add_argument(
+        "--max_batch_size",
+        type=int,
+        default=None,
+        help="Maximal batch size to try with --batch_size auto",
+    )
     parser.add_argument("--device", type=str, default=None)
     parser.add_argument("--output_path", default=None)
-    parser.add_argument("--limit", type=float, default=None,
-                        help="Limit the number of examples per task. "
-                             "If <1, limit is a percentage of the total number of examples.")
+    parser.add_argument(
+        "--limit",
+        type=float,
+        default=None,
+        help="Limit the number of examples per task. "
+        "If <1, limit is a percentage of the total number of examples.",
+    )
     parser.add_argument("--data_sampling", type=float, default=None)
     parser.add_argument("--no_cache", action="store_true")
     parser.add_argument("--decontamination_ngrams_path", default=None)
@@ -33,6 +46,7 @@ def parse_args():
     parser.add_argument("--check_integrity", action="store_true")
     parser.add_argument("--write_out", action="store_true", default=False)
     parser.add_argument("--output_base_path", type=str, default=None)
+    parser.add_argument("--faireval_repeat_per_prompt", action="store_true")
 
     return parser.parse_args()
 
@@ -59,6 +73,9 @@ def main():
         with open(args.description_dict_path, "r") as f:
             description_dict = json.load(f)
 
+    if args.faireval_repeat_per_prompt:
+        pass
+
     results = evaluator.simple_evaluate(
         model=args.model,
         model_args=args.model_args,
@@ -74,7 +91,7 @@ def main():
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         output_base_path=args.output_base_path,
-        model_prompt=args.model_prompt
+        model_prompt=args.model_prompt,
     )
 
     dumped = json.dumps(results, indent=2)
