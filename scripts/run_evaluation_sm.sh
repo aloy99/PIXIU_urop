@@ -3,7 +3,7 @@ export PYTHONPATH="$pixiu_path/src:$pixiu_path/src/financial-evaluation:$pixiu_p
 echo $PYTHONPATH
 export CUDA_VISIBLE_DEVICES="0"
 
-declare -a tasks=("faireval_fpb" "flare_fpb")
+declare -a tasks=("faireval_sm_bigdata" "faireval_sm_acl" "faireval_sm_cikm")
 
 now="$(date +'%Y-%m-%d-%T')"
 start=$(date +%s)
@@ -15,7 +15,7 @@ do
         --tasks $TASK \
         --model_args use_accelerate=True,pretrained=meta-llama/Llama-2-7b-chat-hf,tokenizer=meta-llama/Llama-2-7b-chat-hf,use_fast=False \
         --no_cache \
-        --batch_size 128 \
+        --batch_size 256 \
         --num_fewshot 0  >> output_"$now".log
 done
 
