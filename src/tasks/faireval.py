@@ -260,3 +260,6 @@ class FairevalEngine:
 
     def doc_to_text(self, doc, answer_phrase=" Answer:"):
         return self.randomise_prompt(doc) + self.clean_text(doc) + answer_phrase
+
+    def get_prompt_count(self):
+        return len(self.prompt_mapping["template"])

@@ -1,10 +1,20 @@
 """
 FLARE
 """
+
 from lm_eval.base import Task, rf
 from lm_eval.metrics import mean, bleu, chrf, ter
 import numpy as np
-from .faireval import FairevalEngine, FPB_PROMPTS, FIQASA_PROMPTS, NER_PROMPTS, HEADLINE_PROMPTS, FINQA_PROMPTS, CONVFINQA_PROMPTS, SM_PROMPTS
+from .faireval import (
+    FairevalEngine,
+    FPB_PROMPTS,
+    FIQASA_PROMPTS,
+    NER_PROMPTS,
+    HEADLINE_PROMPTS,
+    FINQA_PROMPTS,
+    CONVFINQA_PROMPTS,
+    SM_PROMPTS,
+)
 from .utils import process_text, process_text_fingpt
 from .zhutils import process_zhtext
 from seqeval.metrics import f1_score as entity_score
@@ -15,7 +25,8 @@ import re
 from factscore_package.factscorer import FactScorer
 import os
 import random
-#from comet import download_model, load_from_checkpoint
+
+# from comet import download_model, load_from_checkpoint
 
 _CITATION = """
 @misc{xie2023pixiu,
@@ -29,6 +40,7 @@ _CITATION = """
 """
 
 random.seed(42)
+
 
 class Classification(Task):
     CALCULATE_MCC = True
@@ -860,7 +872,12 @@ class Headlines(Classification):
         gold = doc["gold"]
 
         return {
-            "avg_f1": (doc["label_type"], int(results[0].strip() != "Yes"), gold, results),
+            "avg_f1": (
+                doc["label_type"],
+                int(results[0].strip() != "Yes"),
+                gold,
+                results,
+            ),
         }
 
     def higher_is_better(self):
@@ -986,7 +1003,7 @@ class TSA(Task):
         return self.dataset["test"]
 
     def doc_to_text(self, doc):
-         # TODO: Format the query prompt portion of the document example.
+        # TODO: Format the query prompt portion of the document example.
         return doc["query"]
 
     def doc_to_target(self, doc):
@@ -994,7 +1011,7 @@ class TSA(Task):
 
     def process_results(self, doc, results):
         pred = results[0].split("\n")[0]
-        pred = re.findall(r'[0-9]+(?:\.[0-9]+)?', pred)
+        pred = re.findall(r"[0-9]+(?:\.[0-9]+)?", pred)
         missing = 0
         if not pred:
             pred = -100.0
@@ -1002,10 +1019,7 @@ class TSA(Task):
         else:
             pred = pred[0]
         pred = float(pred)
-        return {
-                "rmse": (doc["answer"], pred),
-                "missing": missing
-        }
+        return {"rmse": (doc["answer"], pred), "missing": missing}
 
     def higher_is_better(self):
         return {
@@ -1043,8 +1057,7 @@ class TSA(Task):
         return {
             "rmse": self.rmse,
             "missing": mean,
-         }
-
+        }
 
 
 class CFA(Classification):
@@ -1066,33 +1079,178 @@ class MLESG(Classification):
 
 class FSRL(SequentialLabeling):
     DATASET_PATH = "chancefocus/flare-fsrl"
-    LMAP = {key: index for index, key in enumerate(['O', 'I-QUANT', 'B-QUANT', 'I-TIME', 'B-TIME', 'I-MANNER', 'B-MANNER', 'I-THEME', 'B-THEME', 'I-VALUE', 'B-VALUE', 'I-WHOLE', 'B-WHOLE', 'I-LOCATION', 'B-LOCATION', 'I-AGENT', 'B-AGENT', 'I-CAUSE', 'B-CAUSE', 'I-SOURCE', 'B-SOURCE', 'I-REF_TIME', 'B-REF_TIME', 'I-CONDITION', 'B-CONDITION'])}
+    LMAP = {
+        key: index
+        for index, key in enumerate(
+            [
+                "O",
+                "I-QUANT",
+                "B-QUANT",
+                "I-TIME",
+                "B-TIME",
+                "I-MANNER",
+                "B-MANNER",
+                "I-THEME",
+                "B-THEME",
+                "I-VALUE",
+                "B-VALUE",
+                "I-WHOLE",
+                "B-WHOLE",
+                "I-LOCATION",
+                "B-LOCATION",
+                "I-AGENT",
+                "B-AGENT",
+                "I-CAUSE",
+                "B-CAUSE",
+                "I-SOURCE",
+                "B-SOURCE",
+                "I-REF_TIME",
+                "B-REF_TIME",
+                "I-CONDITION",
+                "B-CONDITION",
+            ]
+        )
+    }
+
 
 class CFA(Classification):
     DATASET_PATH = "chancefocus/flare-cfa"
 
+
 class FinargECCAUC(Classification):
     DATASET_PATH = "chancefocus/flare-finarg-ecc-auc"
+
 
 class FinargECCARC(Classification):
     DATASET_PATH = "chancefocus/flare-finarg-ecc-arc"
 
+
 class CD(SequentialLabeling):
     DATASET_PATH = "chancefocus/flare-cd"
-    LMAP = {key: index for index, key in enumerate(['O', 'I-CAUSE', 'B-CAUSE', 'I-EFFECT', 'B-EFFECT'])}
+    LMAP = {
+        key: index
+        for index, key in enumerate(["O", "I-CAUSE", "B-CAUSE", "I-EFFECT", "B-EFFECT"])
+    }
+
 
 class MultiFinEN(Classification):
     DATASET_PATH = "chancefocus/flare-multifin-en"
 
+
 class MA(Classification):
     DATASET_PATH = "chancefocus/flare-ma"
+
 
 class Causal20SC(Classification):
     DATASET_PATH = "chancefocus/flare-causal20-sc"
 
+
 class FNXL(SequentialLabeling):
     DATASET_PATH = "chancefocus/flare-fnxl"
-    LMAP = {'B-BusinessCombinationContingentConsiderationArrangementsRangeOfOutcomesValueHigh': 140, 'B-VariableInterestEntityOwnershipPercentage': 646, 'B-GainLossOnDispositionOfAssets1': 119, 'B-IndefiniteLivedIntangibleAssetsExcludingGoodwill': 46, 'B-MarketingAndAdvertisingExpense': 269, 'B-ReportingUnitPercentageOfFairValueInExcessOfCarryingAmount': 142, 'B-CapitalizedComputerSoftwareNet': 91, 'B-BusinessCombinationConsiderationTransferredEquityInterestsIssuedAndIssuable': 183, 'B-LitigationSettlementExpense': 115, 'B-DefinedBenefitPlanExpectedAmortizationOfGainLossNextFiscalYear': 639, 'B-DeferredCompensationArrangementWithIndividualCompensationExpense': 15, 'B-ReclassificationFromAociCurrentPeriodTax': 152, 'B-OtherComprehensiveIncomeLossBeforeReclassificationsTax': 694, 'B-PreferredStockDividendsPerShareDeclared': 236, 'B-CapitalExpendituresIncurredButNotYetPaid': 344, 'B-DeferredCompensationArrangementWithIndividualContributionsByEmployer': 560, 'B-SeveranceCosts1': 311, 'B-InterestExpense': 784, 'B-SaleOfStockConsiderationReceivedOnTransaction': 76, 'B-LineOfCreditFacilityInterestRateAtPeriodEnd': 822, 'B-SharesIssuedPricePerShare': 137, 'B-EquityMethodInvestmentDifferenceBetweenCarryingAmountAndUnderlyingEquity': 63, 'B-EquitySecuritiesFvNi': 30, 'B-RightOfUseAssetObtainedInExchangeForOperatingLeaseLiability': 118, 'B-DefinedBenefitPlanFundedStatusOfPlan': 547, 'B-SharebasedCompensationArrangementBySharebasedPaymentAwardPurchasePriceOfCommonStockPercent': 323, 'B-TaxCutsAndJobsActOf2017IncomeTaxExpenseBenefit': 256, 'B-LongtermDebtWeightedAverageInterestRate': 364, 'B-ImpairmentOfIntangibleAssetsFinitelived': 71, 'B-ProceedsFromLinesOfCredit': 496, 'B-LongTermPurchaseCommitmentAmount': 701, 'B-DebtInstrumentFairValue': 335, 'B-RestructuringAndRelatedCostCostIncurredToDate1': 52, 'B-ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsVestedInPeriod': 581, 'B-FiniteLivedIntangibleAssetsAccumulatedAmortization': 143, 'B-StockRepurchasedAndRetiredDuringPeriodValue': 330, 'B-BusinessCombinationProFormaInformationRevenueOfAcquireeSinceAcquisitionDateActual': 77, 'B-ClassOfWarrantOrRightExercisePriceOfWarrantsOrRights1': 361, 'B-BusinessAcquisitionPurchasePriceAllocationGoodwillExpectedTaxDeductibleAmount': 550, 'B-OperatingLossCarryforwardsValuationAllowance': 173, 'B-BusinessAcquisitionEquityInterestsIssuedOrIssuableNumberOfSharesIssued': 32, 'B-DefinedContributionPlanMaximumAnnualContributionsPerEmployeePercent': 45, 'B-ContractWithCustomerLiabilityCurrent': 2, 'B-IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign': 474, 'B-FiniteLivedIntangibleAssetsAmortizationExpenseYearThree': 1306, 'B-DefinedBenefitPlanUltimateHealthCareCostTrendRate1': 62, 'B-DefinedBenefitPlanRecognizedNetGainLossDueToSettlements1': 317, 'B-UnrecognizedTaxBenefitsInterestOnIncomeTaxesExpense': 448, 'B-ForeignCurrencyTransactionGainLossRealized': 132, 'B-DeferredTaxAssetsOperatingLossCarryforwardsSubjectToExpiration': 262, 'B-RetainedEarningsAccumulatedDeficit': 174, 'B-ProceedsFromIssuanceOfCommonStock': 209, 'B-EmployeeServiceShareBasedCompensationAllocationOfRecognizedPeriodCostsCapitalizedAmount': 29, 'B-OtherComprehensiveIncomeLossPensionAndOtherPostretirementBenefitPlansTax': 284, 'B-InventoryWriteDown': 465, 'B-RestructuringReserve': 234, 'B-LitigationSettlementAmountAwardedToOtherParty': 42, 'B-DerivativeGainLossOnDerivativeNet': 87, 'B-SharebasedCompensationArrangementBySharebasedPaymentAwardEquityInstrumentsOtherThanOptionsAggregateIntrinsicValueVested': 241, 'B-DerivativeFixedInterestRate': 589, 'B-CashAndCashEquivalentsAtCarryingValue': 257, 'B-ContractWithCustomerAssetNet': 245, 'B-RestructuringAndRelatedCostExpectedCost1': 107, 'B-IncomeTaxHolidayAggregateDollarAmount': 347, 'B-OperatingLeaseCost': 248, 'B-AllowanceForDoubtfulAccountsReceivable': 146, 'B-RepaymentsOfDebt': 416, 'B-InterestPaid': 110, 'B-DeferredFinanceCostsNet': 28, 'B-IncomeTaxExaminationPenaltiesAndInterestAccrued': 271, 'B-ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsNonvestedNumber': 92, 'B-CapitalizedContractCostNet': 155, 'B-CumulativeEffectOfNewAccountingPrincipleInPeriodOfAdoption': 17, 'B-IncomeTaxesPaid': 495, 'B-EquityMethodInvestmentOtherThanTemporaryImpairment': 22, 'B-InterestPaidNet': 225, 'B-EquitySecuritiesWithoutReadilyDeterminableFairValueAmount': 175, 'B-ImpairmentOfLongLivedAssetsHeldForUse': 313, 'B-GoodwillAcquiredDuringPeriod': 156, 'B-DecreaseInUnrecognizedTaxBenefitsIsReasonablyPossible': 363, 'B-RestructuringAndRelatedCostIncurredCost': 75, 'B-StockRepurchasedDuringPeriodValue': 254, 'B-IncomeTaxExaminationPenaltiesAndInterestExpense': 525, 'B-ImpairmentOfIntangibleAssetsIndefinitelivedExcludingGoodwill': 55, 'B-PreferredStockLiquidationPreference': 157, 'B-ImpairmentOfIntangibleAssetsExcludingGoodwill': 158, 'B-IncomeTaxesPaidNet': 456, 'B-DefinedContributionPlanEmployerMatchingContributionPercent': 332, 'B-CostOfGoodsAndServicesSold': 274, 'B-DepreciationDepletionAndAmortization': 338, 'B-InterestExpenseDebt': 191, 'B-LineOfCreditFacilityUnusedCapacityCommitmentFeePercentage': 442, 'B-DisposalGroupIncludingDiscontinuedOperationConsideration': 6, 'B-UnrecognizedTaxBenefitsInterestOnIncomeTaxesAccrued': 14, 'B-SaleOfStockPricePerShare': 278, 'B-DefinedContributionPlanEmployerMatchingContributionPercentOfMatch': 267, 'B-FinitelivedIntangibleAssetsAcquired1': 202, 'B-PaymentsForRepurchaseOfCommonStock': 486, 'B-BusinessCombinationContingentConsiderationLiability': 103, 'B-RelatedPartyTransactionAmountsOfTransaction': 180, 'O': 0}
+    LMAP = {
+        "B-BusinessCombinationContingentConsiderationArrangementsRangeOfOutcomesValueHigh": 140,
+        "B-VariableInterestEntityOwnershipPercentage": 646,
+        "B-GainLossOnDispositionOfAssets1": 119,
+        "B-IndefiniteLivedIntangibleAssetsExcludingGoodwill": 46,
+        "B-MarketingAndAdvertisingExpense": 269,
+        "B-ReportingUnitPercentageOfFairValueInExcessOfCarryingAmount": 142,
+        "B-CapitalizedComputerSoftwareNet": 91,
+        "B-BusinessCombinationConsiderationTransferredEquityInterestsIssuedAndIssuable": 183,
+        "B-LitigationSettlementExpense": 115,
+        "B-DefinedBenefitPlanExpectedAmortizationOfGainLossNextFiscalYear": 639,
+        "B-DeferredCompensationArrangementWithIndividualCompensationExpense": 15,
+        "B-ReclassificationFromAociCurrentPeriodTax": 152,
+        "B-OtherComprehensiveIncomeLossBeforeReclassificationsTax": 694,
+        "B-PreferredStockDividendsPerShareDeclared": 236,
+        "B-CapitalExpendituresIncurredButNotYetPaid": 344,
+        "B-DeferredCompensationArrangementWithIndividualContributionsByEmployer": 560,
+        "B-SeveranceCosts1": 311,
+        "B-InterestExpense": 784,
+        "B-SaleOfStockConsiderationReceivedOnTransaction": 76,
+        "B-LineOfCreditFacilityInterestRateAtPeriodEnd": 822,
+        "B-SharesIssuedPricePerShare": 137,
+        "B-EquityMethodInvestmentDifferenceBetweenCarryingAmountAndUnderlyingEquity": 63,
+        "B-EquitySecuritiesFvNi": 30,
+        "B-RightOfUseAssetObtainedInExchangeForOperatingLeaseLiability": 118,
+        "B-DefinedBenefitPlanFundedStatusOfPlan": 547,
+        "B-SharebasedCompensationArrangementBySharebasedPaymentAwardPurchasePriceOfCommonStockPercent": 323,
+        "B-TaxCutsAndJobsActOf2017IncomeTaxExpenseBenefit": 256,
+        "B-LongtermDebtWeightedAverageInterestRate": 364,
+        "B-ImpairmentOfIntangibleAssetsFinitelived": 71,
+        "B-ProceedsFromLinesOfCredit": 496,
+        "B-LongTermPurchaseCommitmentAmount": 701,
+        "B-DebtInstrumentFairValue": 335,
+        "B-RestructuringAndRelatedCostCostIncurredToDate1": 52,
+        "B-ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsVestedInPeriod": 581,
+        "B-FiniteLivedIntangibleAssetsAccumulatedAmortization": 143,
+        "B-StockRepurchasedAndRetiredDuringPeriodValue": 330,
+        "B-BusinessCombinationProFormaInformationRevenueOfAcquireeSinceAcquisitionDateActual": 77,
+        "B-ClassOfWarrantOrRightExercisePriceOfWarrantsOrRights1": 361,
+        "B-BusinessAcquisitionPurchasePriceAllocationGoodwillExpectedTaxDeductibleAmount": 550,
+        "B-OperatingLossCarryforwardsValuationAllowance": 173,
+        "B-BusinessAcquisitionEquityInterestsIssuedOrIssuableNumberOfSharesIssued": 32,
+        "B-DefinedContributionPlanMaximumAnnualContributionsPerEmployeePercent": 45,
+        "B-ContractWithCustomerLiabilityCurrent": 2,
+        "B-IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign": 474,
+        "B-FiniteLivedIntangibleAssetsAmortizationExpenseYearThree": 1306,
+        "B-DefinedBenefitPlanUltimateHealthCareCostTrendRate1": 62,
+        "B-DefinedBenefitPlanRecognizedNetGainLossDueToSettlements1": 317,
+        "B-UnrecognizedTaxBenefitsInterestOnIncomeTaxesExpense": 448,
+        "B-ForeignCurrencyTransactionGainLossRealized": 132,
+        "B-DeferredTaxAssetsOperatingLossCarryforwardsSubjectToExpiration": 262,
+        "B-RetainedEarningsAccumulatedDeficit": 174,
+        "B-ProceedsFromIssuanceOfCommonStock": 209,
+        "B-EmployeeServiceShareBasedCompensationAllocationOfRecognizedPeriodCostsCapitalizedAmount": 29,
+        "B-OtherComprehensiveIncomeLossPensionAndOtherPostretirementBenefitPlansTax": 284,
+        "B-InventoryWriteDown": 465,
+        "B-RestructuringReserve": 234,
+        "B-LitigationSettlementAmountAwardedToOtherParty": 42,
+        "B-DerivativeGainLossOnDerivativeNet": 87,
+        "B-SharebasedCompensationArrangementBySharebasedPaymentAwardEquityInstrumentsOtherThanOptionsAggregateIntrinsicValueVested": 241,
+        "B-DerivativeFixedInterestRate": 589,
+        "B-CashAndCashEquivalentsAtCarryingValue": 257,
+        "B-ContractWithCustomerAssetNet": 245,
+        "B-RestructuringAndRelatedCostExpectedCost1": 107,
+        "B-IncomeTaxHolidayAggregateDollarAmount": 347,
+        "B-OperatingLeaseCost": 248,
+        "B-AllowanceForDoubtfulAccountsReceivable": 146,
+        "B-RepaymentsOfDebt": 416,
+        "B-InterestPaid": 110,
+        "B-DeferredFinanceCostsNet": 28,
+        "B-IncomeTaxExaminationPenaltiesAndInterestAccrued": 271,
+        "B-ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsNonvestedNumber": 92,
+        "B-CapitalizedContractCostNet": 155,
+        "B-CumulativeEffectOfNewAccountingPrincipleInPeriodOfAdoption": 17,
+        "B-IncomeTaxesPaid": 495,
+        "B-EquityMethodInvestmentOtherThanTemporaryImpairment": 22,
+        "B-InterestPaidNet": 225,
+        "B-EquitySecuritiesWithoutReadilyDeterminableFairValueAmount": 175,
+        "B-ImpairmentOfLongLivedAssetsHeldForUse": 313,
+        "B-GoodwillAcquiredDuringPeriod": 156,
+        "B-DecreaseInUnrecognizedTaxBenefitsIsReasonablyPossible": 363,
+        "B-RestructuringAndRelatedCostIncurredCost": 75,
+        "B-StockRepurchasedDuringPeriodValue": 254,
+        "B-IncomeTaxExaminationPenaltiesAndInterestExpense": 525,
+        "B-ImpairmentOfIntangibleAssetsIndefinitelivedExcludingGoodwill": 55,
+        "B-PreferredStockLiquidationPreference": 157,
+        "B-ImpairmentOfIntangibleAssetsExcludingGoodwill": 158,
+        "B-IncomeTaxesPaidNet": 456,
+        "B-DefinedContributionPlanEmployerMatchingContributionPercent": 332,
+        "B-CostOfGoodsAndServicesSold": 274,
+        "B-DepreciationDepletionAndAmortization": 338,
+        "B-InterestExpenseDebt": 191,
+        "B-LineOfCreditFacilityUnusedCapacityCommitmentFeePercentage": 442,
+        "B-DisposalGroupIncludingDiscontinuedOperationConsideration": 6,
+        "B-UnrecognizedTaxBenefitsInterestOnIncomeTaxesAccrued": 14,
+        "B-SaleOfStockPricePerShare": 278,
+        "B-DefinedContributionPlanEmployerMatchingContributionPercentOfMatch": 267,
+        "B-FinitelivedIntangibleAssetsAcquired1": 202,
+        "B-PaymentsForRepurchaseOfCommonStock": 486,
+        "B-BusinessCombinationContingentConsiderationLiability": 103,
+        "B-RelatedPartyTransactionAmountsOfTransaction": 180,
+        "O": 0,
+    }
+
 
 class TATQA(QA):
     DATASET_PATH = "chancefocus/flare-tatqa"
@@ -1137,7 +1295,6 @@ class travelinsurace(Classification):
     CALCULATE_MCC = True
 
 
-
 class LongFormFactuality(Task):
     VERSION = 1
     DATASET_NAME = None
@@ -1177,9 +1334,7 @@ class LongFormFactuality(Task):
         }
 
     def higher_is_better(self):
-        return {
-            "factscore": True
-        }
+        return {"factscore": True}
 
     def construct_requests(self, doc, ctx):
         """Uses RequestFactory to construct Requests and returns an iterable of
@@ -1198,10 +1353,14 @@ class LongFormFactuality(Task):
         golds, texts, preds = zip(*items)
         texts = list(texts)
         preds = list(preds)
-        
+
         fs = FactScorer("retrieval+ChatGPT", openai_key=os.environ["OPENAI_API_KEY"])
 
-        fs.register_knowledge_source("finterms", data_path="./src/factscore_package/.cache/finterms.jsonl", db_path="./src/factscore_package/.cache/fin_terms.db")
+        fs.register_knowledge_source(
+            "finterms",
+            data_path="./src/factscore_package/.cache/finterms.jsonl",
+            db_path="./src/factscore_package/.cache/fin_terms.db",
+        )
 
         score = 0
         num_facts = 0
@@ -1216,14 +1375,13 @@ class LongFormFactuality(Task):
                 score += out["score"] * out["num_facts_per_response"]
                 num_facts += out["num_facts_per_response"]
 
-        #try:
-            #out = fs.get_score(texts, preds, knowledge_source="finterms")
-        #except:
-            #out = fs.get_score(texts, preds, knowledge_source="finterms")
+        # try:
+        # out = fs.get_score(texts, preds, knowledge_source="finterms")
+        # except:
+        # out = fs.get_score(texts, preds, knowledge_source="finterms")
 
-        
-        #return out["score"] # FActScore
-        return score/num_facts
+        # return out["score"] # FActScore
+        return score / num_facts
 
     def aggregation(self):
         return {
@@ -1234,11 +1392,9 @@ class LongFormFactuality(Task):
 class FINTERM(LongFormFactuality):
     DATASET_PATH = "PIXIU-fin/en-finterm"
 
+
 class ACRONYM(QA):
     DATASET_PATH = "PIXIU-fin/en-acronym"
-
-
-
 
 
 class ZHFinFE(Classification):
@@ -1280,6 +1436,7 @@ class ZHFinEval(Classification):
 class ZHstock11(Classification):
     DATASET_PATH = "ChanceFocus/flare-zh-stockb"
 
+
 class ZHFinQA(QA):
     DATASET_PATH = "ChanceFocus/flare-zh-qa"
 
@@ -1318,7 +1475,7 @@ class ZH21CCKS(RelationExtraction):
             all_golds.extend(gold)
             pred = self.process_string_list(pred)
             all_preds.extend(pred)
-            
+
         return set(all_golds), set(all_preds)
 
 
@@ -1346,7 +1503,7 @@ class ZHNER(NER):
     DATASET_PATH = "ChanceFocus/flare-zh-ner"
 
     def process_results(self, doc, results):
-        text = ' '.join(doc["text"])
+        text = " ".join(doc["text"])
         pred = process_zhtext(results[0], text)
 
         return {"entity_f1": (pred, doc["label"], results[0])}
@@ -1395,13 +1552,17 @@ class ZHFinQAE(QA):
 class ZHConvFinQA(ConvFinQA):
     DATASET_PATH = "ChanceFocus/flare-zh-convfinqa"
 
+
 class FPBFinGPT(FPB):
 
     def doc_to_text(self, doc):
         original_instruction = "Analyze the sentiment of this statement extracted from a financial news article. Provide your answer as either negative, positive, or neutral."
         fingpt_instruction = "Instruction: What is the sentiment of this news? Please choose an answer from {negative/neutral/positive}."
         query = doc["query"]
-        return query.replace(original_instruction, fingpt_instruction).replace("Text: ", "Input: ")
+        return query.replace(original_instruction, fingpt_instruction).replace(
+            "Text: ", "Input: "
+        )
+
 
 class FIQASAFinGPT(FIQASA):
 
@@ -1409,12 +1570,16 @@ class FIQASAFinGPT(FIQASA):
         original_instruction = "What is the sentiment of the following financial post: Positive, Negative, or Neutral?"
         fingpt_instruction = "Instruction: What is the sentiment of this news? Please choose an answer from {negative/neutral/positive}."
         query = doc["query"]
-        return query.replace(original_instruction, fingpt_instruction).replace("Text: ", "Input: ")
+        return query.replace(original_instruction, fingpt_instruction).replace(
+            "Text: ", "Input: "
+        )
+
 
 class HeadlinesFinGPT(Headlines):
 
     def doc_to_text(self, doc):
-        templates = ["Consider the news headline - does it concern {}?",
+        templates = [
+            "Consider the news headline - does it concern {}?",
             "Examine the news headline and decide if it includes {}.",
             "Let me know if the news headline talks about {}.",
             "Please determine if the news headline addresses {}.",
@@ -1424,7 +1589,8 @@ class HeadlinesFinGPT(Headlines):
             "Analyze the news headline for any mention of {}.",
             "Assess if the news headline touches on {}.",
             "Does the news headline talk about {}?",
-            "Review the news headline and determine if it relates to {}.",]
+            "Review the news headline and determine if it relates to {}.",
+        ]
 
         topic_map = {
             "PastPrice": "price in the past",
@@ -1435,12 +1601,14 @@ class HeadlinesFinGPT(Headlines):
             "Price or Not": "price",
             "Direction Up": "price going up",
             "Direction Down": "price going down",
-            "Direction Constant": "price staying constant",}
+            "Direction Constant": "price staying constant",
+        }
 
         query = doc["query"]
-        query_topic = [v for k,v in topic_map.items() if k in query][0]
+        query_topic = [v for k, v in topic_map.items() if k in query][0]
 
         return templates[random.randrange(len(templates))].format(query_topic)
+
 
 class NERFinGPT(NER):
 
@@ -1448,47 +1616,57 @@ class NERFinGPT(NER):
         original_instruction = "In the sentences extracted from financial agreements in U.S. SEC filings, identify the named entities that represent a person ('PER'), an organization ('ORG'), or a location ('LOC'). The required answer format is: 'entity name, entity type'"
         fingpt_instruction = "Instruction: Please extract entities and their types from the input sentence, entity types should be chosen from {person/organization/location}."
         query = doc["query"]
-        return query.replace(original_instruction, fingpt_instruction).replace("Text: ", "Input: ")
-    
+        return query.replace(original_instruction, fingpt_instruction).replace(
+            "Text: ", "Input: "
+        )
+
     def process_results(self, doc, results):
-    
+
         text = doc["text"]
         pred = process_text_fingpt(results[0], text)
 
         return {"entity_f1": (pred, doc["label"], results[0])}
 
+
 class FairevalMixin:
     def doc_to_text(self, doc):
         return self.faireval_engine.doc_to_text(doc)
-    
+
+    def get_faireval_prompt_count(self):
+        return self.faireval_engine.get_prompt_count()
+
+
 class FairevalFPB(FairevalMixin, FPB):
     faireval_engine = FairevalEngine(FPB_PROMPTS, 0, "text")
+
 
 class FairevalFIQASA(FairevalMixin, FIQASA):
     faireval_engine = FairevalEngine(FIQASA_PROMPTS, 1, "text")
 
+
 class FairevalHeadlines(FairevalMixin, Headlines):
     faireval_engine = FairevalEngine(HEADLINE_PROMPTS, 1, "headlines")
+
 
 class FairevalNER(FairevalMixin, NER):
     faireval_engine = FairevalEngine(NER_PROMPTS, 0, "text")
 
+
 class FairevalFinQA(FairevalMixin, FinQA):
     faireval_engine = FairevalEngine(FINQA_PROMPTS, 0, "finqa")
+
 
 class FairevalConvFinQA(FairevalMixin, ConvFinQA):
     faireval_engine = FairevalEngine(CONVFINQA_PROMPTS, 0, "convfinqa")
 
+
 class FairevalStockMovementBigData(FairevalMixin, StockMovementBigData):
     faireval_engine = FairevalEngine(SM_PROMPTS, 0, "context")
+
 
 class FairevalStockMovementACL(FairevalMixin, StockMovementACL):
     faireval_engine = FairevalEngine(SM_PROMPTS, 0, "context")
 
+
 class FairevalStockMovementCIKM(FairevalMixin, StockMovementCIKM):
     faireval_engine = FairevalEngine(SM_PROMPTS, 0, "context")
-
-
-
-    
-
