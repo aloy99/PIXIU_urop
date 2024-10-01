@@ -195,8 +195,6 @@ def faireval_evaluate(
             "WARNING: provide_description is deprecated and will be removed in a future version in favor of description_dict"
         )
 
-    decontaminate = decontamination_ngrams_path is not None
-
     task_dict_items = [
         (name, task)
         for name, task in task_dict.items()
@@ -210,20 +208,10 @@ def faireval_evaluate(
     turn_requests = collections.defaultdict(dict)
     requests_origin = collections.defaultdict(list)
 
-    overlaps = collections.defaultdict(list)  # {task_name: contaminated_docs}
-
-    # If we ever run into issues where the eval tasks don't fit in memory and we can't afford a machine with bigger
-    # memory, we can always modify this plumbing to support that, but I didn't want to include it just yet because
-    # over-engineering is bad (or we could make it write the requests to disk and then read them back out again
-    #  - probably using an sqlite db because of all the moving parts we have
-
-    # TODO: we need unit tests & sanity checks or something to ensure that the return of `validation_docs` is stable
     docs = {}
     write_out_info = {}
 
-    docs_for_decontamination = collections.defaultdict(list)
-
-    def process_task(task_name, task, **kwargs):
+    def process_task(task_name, task, prompt_index):
         # default to test doc, fall back to val doc if validation unavailable
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
         if task.has_test_docs():
@@ -234,6 +222,14 @@ def faireval_evaluate(
             task_doc_func = task.validation_docs
         else:
             raise RuntimeError("Task has neither test_docs nor validation_docs")
+
+        # HELP
+
+        # ok the biggest issue here is trying to hijack fewshot_context so that it only uses one prompt
+        # fewshot_context uses doc_to_text so
+        # we can... ?
+
+        # honestly i think mutating might be the easiest. i.e task.set_prompt(prompt_index)
 
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
         task_docs = list(task_doc_func())
@@ -257,10 +253,6 @@ def faireval_evaluate(
             model_prompt = "no_prompt"
 
         for doc_id, doc in enumerate(itertools.islice(task_docs, 0, limit)):
-            if decontaminate and task.should_decontaminate():
-                docs_for_decontamination[(task_name, task_set)].append(
-                    task.doc_to_decontamination_query(doc)
-                )
 
             docs[(task_name, doc_id)] = doc
             ctx = task.fewshot_context(
@@ -308,22 +300,8 @@ def faireval_evaluate(
     # get lists of each type of request
     for task_name, task in task_dict_items:
         versions[task_name] = task.VERSION
-
-        if faireval_repeat_per_prompt:
-            if faireval_repeat_per_prompt:
-                for prompt_index in range(task.get_faireval_prompt_count()):
-                    process_task(task_name, task, prompt_index=prompt_index)
-        else:
-            process_task(task_name, task)
-
-    # Compare all tasks/sets at once to ensure a single training set scan
-    if decontaminate:
-        from lm_eval.decontamination.decontaminate import get_train_overlap
-
-        print("Finding train/test overlap, please wait...")
-        overlaps = get_train_overlap(
-            docs_for_decontamination, decontamination_ngrams_path, limit
-        )
+        for prompt_index in range(task.get_faireval_prompt_count()):
+            process_task(task_name, task, prompt_index)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
@@ -402,11 +380,6 @@ def faireval_evaluate(
 
             if write_out:
                 write_out_info[task_name][doc_id][metric] = str(value)
-
-            # Re-use the evaluation for the decontaminated set by just ignoring the overlaps
-            if decontaminate and task_name in overlaps:
-                if doc_id not in overlaps[task_name]:
-                    vals[(task_name, metric + decontaminate_suffix)].append(value)
 
     # aggregate results
     for (task_name, metric), items in vals.items():

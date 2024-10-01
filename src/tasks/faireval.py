@@ -191,9 +191,13 @@ class FairevalEngine:
         self.prompt_categories = prompt_categories
         self.task_type = task_type
         self.prompt_mode = prompt_mode
+        self.set_prompt_index = None
 
     def randomise_prompt(self, doc):
-        prompt = random.choice(self.prompt_mapping["template"])
+        if self.set_prompt_index:
+            prompt = self.prompt_mapping["template"][self.set_prompt_index]
+        else:
+            prompt = random.choice(self.prompt_mapping["template"])
         for category in range(self.prompt_categories):
             prompt = random.choice(self.prompt_mapping["template"])
             category_mapping = self.prompt_mapping[category]
@@ -213,11 +217,8 @@ class FairevalEngine:
             prompt = prompt.format(stock=stock, date=date)
         return prompt
 
-    def test_docs(self):
-        if self.prompt_mode == "random":
-            return super().test_docs()
-        elif self.prompt_mode == "all":
-            return self.test_docs() * len(self.prompt_mapping["template"])
+    def set_prompt(self, prompt_index):
+        self.set_prompt_index = prompt_index
 
     def clean_text(self, doc):
         if self.task_type == "text":
