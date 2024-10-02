@@ -1634,6 +1634,9 @@ class FairevalMixin:
 
     def get_faireval_prompt_count(self):
         return self.faireval_engine.get_prompt_count()
+    
+    def set_prompt(self, prompt_index):
+        self.faireval_engine.set_prompt(prompt_index)
 
 
 class FairevalFPB(FairevalMixin, FPB):

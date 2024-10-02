@@ -92,6 +92,7 @@ def main():
         write_out=args.write_out,
         output_base_path=args.output_base_path,
         model_prompt=args.model_prompt,
+        faireval_repeat_per_prompt=args.faireval_repeat_per_prompt
     )
 
     dumped = json.dumps(results, indent=2)
