@@ -212,7 +212,7 @@ def faireval_evaluate(
     docs = {}
     write_out_info = {}
 
-    def process_task(task_name, task, prompt_index):
+    def process_task(task_name, task, limit, model_prompt, prompt_index):
         # default to test doc, fall back to val doc if validation unavailable
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
         if task.has_test_docs():
@@ -301,7 +301,7 @@ def faireval_evaluate(
     for task_name, task in task_dict_items:
         versions[task_name] = task.VERSION
         for prompt_index in range(task.get_faireval_prompt_count()):
-            process_task(task_name, task, prompt_index)
+            process_task(task_name, task, limit, model_prompt, prompt_index)
 
     # all responses for each (task, doc)
     process_res_queue = collections.defaultdict(list)
