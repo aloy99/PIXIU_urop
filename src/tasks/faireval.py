@@ -199,7 +199,6 @@ class FairevalEngine:
         else:
             prompt = random.choice(self.prompt_mapping["template"])
         for category in range(self.prompt_categories):
-            prompt = random.choice(self.prompt_mapping["template"])
             category_mapping = self.prompt_mapping[category]
             replacements = {}
             for k in category_mapping.keys():

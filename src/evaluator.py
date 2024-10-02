@@ -201,7 +201,7 @@ def faireval_evaluate(
         if (task.has_validation_docs() or task.has_test_docs())
     ]
 
-    results = collections.defaultdict(dict)
+    results = collections.defaultdict(lambda: collections.defaultdict(dict))
     versions = collections.defaultdict(dict)
 
     requests = collections.defaultdict(list)
@@ -216,9 +216,7 @@ def faireval_evaluate(
         # TODO: the test-fallback-to-val system isn't final, we should revisit it at some point
         if task.has_test_docs():
             task_doc_func = task.test_docs
-            task_set = "test"  # Required for caching in the decontamination
         elif task.has_validation_docs():
-            task_set = "val"  # Required for caching in the decontamination
             task_doc_func = task.validation_docs
         else:
             raise RuntimeError("Task has neither test_docs nor validation_docs")
@@ -232,6 +230,7 @@ def faireval_evaluate(
         # honestly i think mutating might be the easiest. i.e task.set_prompt(prompt_index)
 
         # deterministically shuffle docs and chop off the first `limit` because sometimes docs are in some kind of order
+        task.set_prompt(prompt_index)
         task_docs = list(task_doc_func())
         rnd = random.Random()
         rnd.seed(42)
@@ -283,7 +282,7 @@ def faireval_evaluate(
                 turn = doc.get("turn", 0)
                 turn_requests[(diag_id, turn)] = (task_name, doc, doc_id, req)
                 requests_origin[req.request_type].append(
-                    (i, task_name, doc, doc_id, diag_id, turn)
+                    (i, task_name, prompt_index, doc, doc_id, diag_id, turn)
                 )
 
                 # print("req: " + str(req.args))
@@ -322,7 +321,7 @@ def faireval_evaluate(
 
             filtered_reqs = []
 
-            for req, (i, task_name, doc, doc_id, diag_id, turn) in zip(
+            for req, (i, task_name, prompt_index, doc, doc_id, diag_id, turn) in zip(
                 reqs, requests_origin[reqtype]
             ):
                 if turn != cur_turn:
@@ -334,7 +333,7 @@ def faireval_evaluate(
                     [(turn_requests.get((diag_id, t), None), t) for t in range(turn)],
                     turn,
                 )
-                filtered_reqs.append([req, (i, task_name, doc, doc_id, diag_id, turn)])
+                filtered_reqs.append([req, (i, task_name, prompt_index, doc, doc_id, diag_id, turn)])
 
             resps = getattr(lm, reqtype)([req.args for req in reqs])
             resps = [
@@ -343,10 +342,10 @@ def faireval_evaluate(
             ]
 
             for resp, req in zip(resps, filtered_reqs):
-                i, task_name, doc, doc_id, diag_id, turn = req[1]
+                i, task_name, prompt_index, doc, doc_id, diag_id, turn = req[1]
                 task = task_dict[task_name]
                 if not task.EVAL_LAST_TURN or turn == task_turns[task_name]:
-                    process_res_queue[(task_name, doc_id)].append((i, resp))
+                    process_res_queue[(task_name, prompt_index, doc_id)].append((i, resp))
                 turn_requests[(diag_id, turn)] = resp
 
                 if write_out:
@@ -365,7 +364,7 @@ def faireval_evaluate(
     vals = collections.defaultdict(list)
 
     # unpack results and sort back in order and return control to Task
-    for (task_name, doc_id), requests in process_res_queue.items():
+    for (task_name, prompt_index, doc_id), requests in process_res_queue.items():
         requests.sort(key=lambda x: x[0])
         requests = [x[1] for x in requests]
 
@@ -376,13 +375,13 @@ def faireval_evaluate(
 
         metrics = task.process_results(doc, requests)
         for metric, value in metrics.items():
-            vals[(task_name, metric)].append(value)
+            vals[(task_name, prompt_index, metric)].append(value)
 
             if write_out:
                 write_out_info[task_name][doc_id][metric] = str(value)
 
     # aggregate results
-    for (task_name, metric), items in vals.items():
+    for (task_name, prompt_index, metric), items in vals.items():
         task = task_dict[task_name]
         real_metric = metric  # key when looking up the metric with task.aggregation
         if metric.endswith(decontaminate_suffix):
@@ -390,7 +389,7 @@ def faireval_evaluate(
                 decontaminate_suffix, ""
             )  # decontaminated still uses the same metric
 
-        results[task_name][metric] = task.aggregation()[real_metric](items)
+        results[task_name][metric][prompt_index] = task.aggregation()[real_metric](items)
         # hotfix: bleu, chrf, ter seem to be really expensive to bootstrap
         # so we run them less iterations. still looking for a cleaner way to do this
 
@@ -404,7 +403,7 @@ def faireval_evaluate(
         )
 
         if stderr is not None:
-            results[task_name][metric + "_stderr"] = stderr(items)
+            results[task_name][metric + "_stderr"][prompt_index] = stderr(items)
 
     if write_out:
         import json
@@ -428,7 +427,14 @@ def faireval_evaluate(
             ) as fp:
                 json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
 
-    return {"results": dict(results), "versions": dict(versions)}
+    results_processed = {
+        task_name: {
+            **{metric + "_mean": np.mean(results[task_name][metric].values()) for metric in metrics},
+            **{metric + "_prompt_stderr": np.mean(results[task_name][metric].values(), ddof = 1) for metric in metrics}
+        } for task_name, metrics in results.items()
+    }
+
+    return {"results": dict(results_processed), "versions": dict(versions)}
 
 
 @positional_deprecated
