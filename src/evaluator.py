@@ -140,6 +140,7 @@ def simple_evaluate(
         "limit": limit,
         "bootstrap_iters": bootstrap_iters,
         "description_dict": description_dict,
+        "faireval_repeat_per_prompt": faireval_repeat_per_prompt
     }
 
     return results
