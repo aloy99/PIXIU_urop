@@ -371,8 +371,11 @@ def faireval_evaluate(
 
         task = task_dict[task_name]
         doc = docs[(task_name, doc_id)]
-        print("doc: " + str(doc))
-        print("requests: " + str(requests))
+
+        #prevent printing all results
+        if prompt_index == 0:
+            print("doc: " + str(doc))
+            print("requests: " + str(requests))
 
         metrics = task.process_results(doc, requests)
         for metric, value in metrics.items():
