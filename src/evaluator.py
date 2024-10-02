@@ -431,7 +431,7 @@ def faireval_evaluate(
     results_processed = {
         task_name: {
             **{metric + "_mean": np.mean(list(results[task_name][metric].values())) for metric in metrics},
-            **{metric + "_prompt_stderr": np.mean(list(results[task_name][metric].values()), ddof = 1) for metric in metrics}
+            **{metric + "_prompt_stderr": np.std(list(results[task_name][metric].values()), ddof = 1) for metric in metrics}
         } for task_name, metrics in results.items()
     }
 
