@@ -108,7 +108,7 @@ def simple_evaluate(
         run_task_tests(task_list=tasks)
 
     eval_function = partial(
-        faireval_evaluate if faireval_repeat_per_prompt else evalute
+        faireval_evaluate if faireval_repeat_per_prompt else evaluate
     )
 
     results = eval_function(
