@@ -439,13 +439,23 @@ def faireval_evaluate(
         } for task_name, metrics in results.items()
     }
    
-
-    df_results = pd.DataFrame.from_dict({
-        (task_name, metric): results_raw[task_name][metric]
+    df_results = pd.DataFrame([
+        {
+            'task_name': task_name,
+            'metric': metric,
+            'value': value,
+            'trial': trial_idx
+        }
         for task_name in results_raw.keys()
-        for metric in results_raw[task_name].keys()},
-        orient = 'index'
-    )
+        for metric in results_raw[task_name].keys()
+        for trial_idx, value in enumerate(results_raw[task_name][metric])
+        ])
+    # df_results = pd.DataFrame.from_dict({
+    #     (task_name, metric): results_raw[task_name][metric]
+    #     for task_name in results_raw.keys()
+    #     for metric in results_raw[task_name].keys()},
+    #     orient = 'index'
+    # )
     df_results['time'] = datetime.datetime.now()
     
     try:
