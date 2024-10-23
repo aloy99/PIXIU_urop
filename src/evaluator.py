@@ -1,6 +1,8 @@
 import collections
 import itertools
 import numpy as np
+import pandas as pd
+import datetime
 import random
 from functools import partial
 
@@ -430,6 +432,31 @@ def faireval_evaluate(
                 encoding="utf8",
             ) as fp:
                 json.dump(write_out_info[task_name], fp, indent=4, ensure_ascii=False)
+
+    results_raw = {
+        task_name: {
+            **{metric: list(results[task_name][metric].values()) for metric in metrics}
+        } for task_name, metrics in results.items()
+    }
+   
+
+    df_results = pd.DataFrame.from_dict({
+        (task_name, metric): results_raw[task_name][metric]
+        for task_name in results_raw.keys()
+        for metric in results_raw[task_name].keys()},
+        orient = 'index'
+    )
+    df_results['time'] = datetime.datetime.now()
+    
+    try:
+        results_record = pd.read_csv('results.csv')
+        results_record = pd.concat([results_record, df_results])
+    except:
+        results_record = df_results
+
+    results_record.to_csv('results.csv')
+
+
 
     results_processed = {
         task_name: {
