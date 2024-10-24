@@ -464,7 +464,7 @@ def faireval_evaluate(
     except:
         results_record = df_results
 
-    results_record.to_csv('results.csv')
+    results_record.to_csv('results.csv', index = False)
 
 
 
