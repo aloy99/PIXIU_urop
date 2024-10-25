@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Exit on any error
+cd /home/shadeform
 set -e
 
 echo "Starting setup process..."
