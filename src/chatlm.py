@@ -9,7 +9,7 @@ import backoff
 import time
 
 
-@backoff.on_exception(backoff.expo)
+@backoff.on_exception(backoff.expo, Exception)
 async def single_chat(client, **kwargs):
     r = await client.post(**kwargs, timeout=20)
     json_response = r.json()
