@@ -3,7 +3,7 @@ export PYTHONPATH="$pixiu_path/src:$pixiu_path/src/financial-evaluation:$pixiu_p
 echo $PYTHONPATH
 export CUDA_VISIBLE_DEVICES="0"
 
-declare -a tasks=("faireval_convfinqa" "faireval_sm_bigdata" "faireval_sm_acl" "faireval_sm_cikm")
+declare -a tasks=("faireval_fpb" "faireval_fiqasa" "faireval_finqa" "faireval_convfinqa" "faireval_sm_bigdata" "faireval_sm_acl" "faireval_sm_cikm" "faireval_ner" "faireval_headlines")
 
 now="$(date +'%Y-%m-%d-%T')"
 start=$(date +%s)
@@ -20,18 +20,18 @@ do
         --faireval_repeat_per_prompt  >> output_"$now".log
 done
 
-declare -a fewshot_tasks=("faireval_ner" "faireval_headlines")
-for TASK in "${fewshot_tasks[@]}"
-do
-    python3 src/eval.py \
-        --model hf-causal-vllm \
-        --tasks $TASK \
-        --model_args use_accelerate=True,pretrained=meta-llama/Llama-2-7b-chat-hf,tokenizer=meta-llama/Llama-2-7b-chat-hf,use_fast=False \
-        --no_cache \
-        --batch_size 256 \
-        --num_fewshot 5 \
-        --faireval_repeat_per_prompt  >> output_"$now".log
-done
+# declare -a fewshot_tasks=("faireval_ner" "faireval_headlines")
+# for TASK in "${fewshot_tasks[@]}"
+# do
+#     python3 src/eval.py \
+#         --model hf-causal-vllm \
+#         --tasks $TASK \
+#         --model_args use_accelerate=True,pretrained=meta-llama/Llama-2-7b-chat-hf,tokenizer=meta-llama/Llama-2-7b-chat-hf,use_fast=False \
+#         --no_cache \
+#         --batch_size 256 \
+#         --num_fewshot 5 \
+#         --faireval_repeat_per_prompt  >> output_"$now".log
+# done
 end=$(date +%s)
 seconds=$(echo "$end - $start" | bc)
 echo $seconds' sec'
