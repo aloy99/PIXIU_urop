@@ -5,26 +5,16 @@ import transformers
 from lm_eval.base import BaseLM
 from lm_eval import utils
 from tqdm import tqdm
+import backoff
 import time
 
-BACKOFF_TIME = 0.1
 
+@backoff.on_exception(backoff.expo)
 async def single_chat(client, **kwargs):
-    global BACKOFF_TIME
-    backoff_time = BACKOFF_TIME
-    while True:
-        try:
-            r = await client.post(**kwargs, timeout=20)
-            json_response = r.json()
-            s = json_response['choices'][0]["message"]['content']
-            time.sleep(backoff_time)
-            return s
-        except Exception:
-            import traceback
-
-            traceback.print_exc()
-            time.sleep(backoff_time * 30)
-            BACKOFF_TIME *= 1.05
+    r = await client.post(**kwargs, timeout=20)
+    json_response = r.json()
+    s = json_response['choices'][0]["message"]['content']
+    return s
 
 
 async def oa_completion(**kwargs):
