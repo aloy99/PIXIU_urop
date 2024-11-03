@@ -1,3 +1,43 @@
+# Faireval
+Author: Aloysius Chow Hee Chek, National University of Singapore
+
+Faireval is a fork of the original PIXIU repository, attributed in the remainder of the README.
+
+# Setup
+
+## 1. Install Faireval
+Clone the repository and install the required packages:
+```bash
+git clone https://github.com/aloy99/PIXIU_urop.git --recursive
+cd PIXIU_urop
+pip install -r requirements.txt
+cd src/financial-evaluation
+pip install -e .[multilingual]
+```
+
+## 2. Download BART Checkpoint
+Install `gdown` and download the BART checkpoint:
+```bash
+pip install gdown
+export PATH=$PATH:"/home/shadeform/.local/bin"
+gdown https://drive.google.com/uc?id=1_7JfF7KOInb7ZrxKHIigTMR4ChVET01m -O src/metrics/BARTScore/bart_score.pth
+```
+
+## 3. Login to Hugging Face CLI
+Authenticate with Hugging Face CLI:
+```bash
+huggingface-cli login
+```
+
+## 4. Run Evaluation Script
+Execute the evaluation script:
+```bash
+bash scripts/run_evaluation_faireval.sh
+```
+
+# Original PIXIU README
+
+
 <p align="center" width="100%">
 <img src="https://i.postimg.cc/xTpWgq3L/pixiu-logo.png"  width="100%" height="100%">
 </p>
@@ -106,8 +146,6 @@ This repository and its contents are provided for **academic and educational pur
 **Languages**
 
 - [English](README.md)
-- [Spainish](README.es.md)
-- [Chinese](README.zh.md)
 
 **Papers**
 
