@@ -7,9 +7,9 @@ set -e
 echo "Starting setup process..."
 
 
-echo "Installing PIXIU..."
+echo "Installing Faireval..."
 git clone https://github.com/aloy99/PIXIU_urop.git --recursive
-cd PIXIU_urop
+cd Faireval
 pip install -r requirements.txt
 cd src/financial-evaluation
 pip install -e .[multilingual]
