@@ -13,25 +13,13 @@ start=$(date +%s)
 for TASK in "${tasks[@]}"
 do
     python3 src/eval.py \
-        --model gpt-4-0613\
+        --model gpt-4o-2024-08-06\
         --tasks $TASK \
         --no_cache \
         --num_fewshot 0 \
         --faireval_repeat_per_prompt  >> output_"$now".log
 done
 
-# declare -a fewshot_tasks=("faireval_ner" "faireval_headlines")
-# for TASK in "${fewshot_tasks[@]}"
-# do
-#     python3 src/eval.py \
-#         --model hf-causal-vllm \
-#         --tasks $TASK \
-#         --model_args use_accelerate=True,pretrained=meta-llama/Llama-2-7b-chat-hf,tokenizer=meta-llama/Llama-2-7b-chat-hf,use_fast=False \
-#         --no_cache \
-#         --batch_size 256 \
-#         --num_fewshot 5 \
-#         --faireval_repeat_per_prompt  >> output_"$now".log
-# done
 end=$(date +%s)
 seconds=$(echo "$end - $start" | bc)
 echo $seconds' sec'
