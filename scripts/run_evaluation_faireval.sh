@@ -1,5 +1,5 @@
-pixiu_path='/home/shadeform/PIXIU_urop'
-export PYTHONPATH="$pixiu_path/src:$pixiu_path/src/financial-evaluation:$pixiu_path/src/metrics/BARTScore"
+faireval_path='/home/shadeform/faireval'
+export PYTHONPATH="$faireval_path/src:$faireval_path/src/financial-evaluation:$faireval_path/src/metrics/BARTScore"
 echo $PYTHONPATH
 export CUDA_VISIBLE_DEVICES="0"
 
