@@ -8,8 +8,8 @@ Faireval is a fork of the original PIXIU repository, attributed in the remainder
 ## 1. Install Faireval
 Clone the repository and install the required packages:
 ```bash
-git clone https://github.com/aloy99/PIXIU_urop.git --recursive
-cd PIXIU_urop
+git clone https://github.com/aloy99/faireval.git --recursive
+cd faireval
 pip install -r requirements.txt
 cd src/financial-evaluation
 pip install -e .[multilingual]
